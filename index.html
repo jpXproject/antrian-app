@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kios Antrian — Kampung Koding</title>
+  <link rel="stylesheet" href="global.css">
+  <style>
+    body { display: flex; flex-direction: column; min-height: 100vh; }
+
+    /* ── Hero Kios ─────────────────────────────── */
+    .kios-wrap {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+      gap: 32px;
+    }
+
+    .kios-logo {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--slate-400);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .kios-logo strong { color: var(--slate-900); }
+
+    .kios-card {
+      background: var(--white);
+      border-radius: 20px;
+      box-shadow: var(--shadow-lg);
+      padding: 52px 56px;
+      text-align: center;
+      max-width: 520px;
+      width: 100%;
+      animation: fadeIn .4s ease;
+    }
+
+    .kios-icon {
+      width: 72px; height: 72px;
+      background: var(--blue-50);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 24px;
+      font-size: 32px;
+    }
+
+    .kios-title {
+      font-size: 32px;
+      font-weight: 900;
+      letter-spacing: -.03em;
+      color: var(--slate-900);
+      line-height: 1.1;
+      margin-bottom: 10px;
+    }
+
+    .kios-sub {
+      font-size: 15px;
+      color: var(--slate-600);
+      line-height: 1.6;
+      margin-bottom: 36px;
+    }
+
+    .btn-ambil {
+      width: 100%;
+      padding: 22px;
+      font-size: 20px;
+      border-radius: var(--radius);
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-ambil::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,.15) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    /* ── Stats bar ─────────────────────────────── */
+    .stats-bar {
+      display: flex;
+      gap: 16px;
+      width: 100%;
+      max-width: 520px;
+    }
+    .stat-box {
+      flex: 1;
+      background: var(--white);
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow-sm);
+      padding: 16px;
+      text-align: center;
+    }
+    .stat-val {
+      font-size: 28px;
+      font-weight: 800;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--slate-900);
+      line-height: 1;
+    }
+    .stat-lbl {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--slate-400);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      margin-top: 6px;
+    }
+
+    /* ── Footer jam ────────────────────────────── */
+    .kios-clock {
+      font-size: 13px;
+      color: var(--slate-400);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* ── Konfirmasi overlay ─────────────────────── */
+    .overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15,23,42,.65);
+      backdrop-filter: blur(4px);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn .2s ease;
+    }
+    .overlay.active { display: flex; }
+    .overlay-card {
+      background: var(--white);
+      border-radius: 20px;
+      padding: 44px;
+      text-align: center;
+      max-width: 380px;
+      width: calc(100% - 40px);
+      box-shadow: 0 32px 64px rgba(0,0,0,.2);
+      animation: fadeIn .25s ease;
+    }
+    .nomor-besar {
+      font-size: 80px;
+      font-weight: 900;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--blue-600);
+      line-height: 1;
+      margin: 16px 0;
+      letter-spacing: -.04em;
+    }
+    .overlay-card h3 { font-size: 14px; color: var(--slate-400); font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
+    .overlay-card p  { font-size: 14px; color: var(--slate-600); margin-top: 12px; line-height: 1.6; }
+    .overlay-actions { display: flex; gap: 10px; margin-top: 24px; }
+    .overlay-actions .btn { flex: 1; }
+  </style>
+</head>
+<body>
+
+<!-- Topbar -->
+<div class="topbar no-print">
+  <span class="topbar-brand"><span>Kampung</span> Koding</span>
+  <div class="badge badge-green"><span class="dot-live"></span> Sistem Aktif</div>
+</div>
+
+<!-- Kios Utama -->
+<div class="kios-wrap no-print">
+  <div class="kios-card">
+    <div class="kios-icon">🎫</div>
+    <h1 class="kios-title">Ambil Nomor<br>Antrian Anda</h1>
+    <p class="kios-sub">Tekan tombol di bawah untuk mendapatkan nomor urut. Simpan struk dan tunggu hingga nomor Anda dipanggil.</p>
+    <button class="btn btn-success btn-ambil" onclick="generateAntrian()">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+      AMBIL NOMOR ANTRIAN
+    </button>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-bar">
+    <div class="stat-box">
+      <div class="stat-val mono" id="statTotal">—</div>
+      <div class="stat-lbl">Total Antrian</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-val mono" id="statDipanggil">—</div>
+      <div class="stat-lbl">Sudah Dipanggil</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-val mono" id="statSisa">—</div>
+      <div class="stat-lbl">Sisa Menunggu</div>
+    </div>
+  </div>
+
+  <div class="kios-clock" id="clockDisplay"></div>
+</div>
+
+<!-- Overlay Konfirmasi -->
+<div class="overlay" id="overlayKonfirmasi">
+  <div class="overlay-card">
+    <h3>Nomor Antrian Anda</h3>
+    <div class="nomor-besar" id="overlayNomor">A-001</div>
+    <p id="overlayWaktu"></p>
+    <p style="margin-top:4px; font-size:13px; color:var(--slate-400);">Dialog print akan muncul. Ambil struk Anda.</p>
+    <div class="overlay-actions">
+      <button class="btn btn-ghost btn-sm" onclick="tutupOverlay()">Tutup</button>
+      <button class="btn btn-success btn-sm" onclick="cetakUlang()">
+        🖨️ Cetak Ulang
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Area Cetak Struk Thermal -->
+<div id="areaCetak" style="display:none;">
+  <div style="text-align:center;">
+    <p style="font-weight:700; font-size:13px; margin:0;">KAMPUNG KODING</p>
+    <p style="font-size:9px; margin:3px 0;">Jl. Raya Teknologi No. 2026</p>
+    <p style="font-size:9px; margin:0;">Telp: (021) 555-2026</p>
+    <p style="margin:6px 0;">................................</p>
+    <p style="font-size:10px; margin:4px 0; font-weight:600;">TIKET ANTRIAN</p>
+    <p style="font-size:10px; margin:0;" id="txtTanggalStruk"></p>
+    <p style="margin:6px 0;">................................</p>
+    <p style="font-size:11px; margin:4px 0;">NOMOR ANDA</p>
+    <p style="font-size:48px; font-weight:900; margin:8px 0; line-height:1;" id="txtNomorStruk">A-000</p>
+    <p style="margin:8px 0;">................................</p>
+    <p style="font-size:9px; margin:4px 0;" id="txtWaktuStruk"></p>
+    <p style="font-size:9px; margin:10px 0 4px;">Silakan menunggu hingga nomor</p>
+    <p style="font-size:9px; margin:0;">Anda dipanggil di layar monitor.</p>
+    <p style="margin:8px 0;">................................</p>
+    <p style="font-size:8px; color:#666;">Terima kasih atas kesabaran Anda</p>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+  let lastNomor = 0;
+
+  // ── Jam realtime ─────────────────────────────────────────────
+  function updateClock() {
+    const now = new Date();
+    document.getElementById('clockDisplay').textContent =
+      now.toLocaleDateString('id-ID', { weekday:'long', year:'numeric', month:'long', day:'numeric' }) +
+      ' · ' + now.toLocaleTimeString('id-ID');
+  }
+  updateClock();
+  setInterval(updateClock, 1000);
+
+  // ── Update stats ─────────────────────────────────────────────
+  function updateStats() {
+    const total    = parseInt(localStorage.getItem('antrian_tertinggi')  || 0);
+    const dipanggil = parseInt(localStorage.getItem('antrian_dipanggil_global') || 0);
+    const sisa     = Math.max(0, total - dipanggil);
+    document.getElementById('statTotal').textContent     = String(total).padStart(3,'0');
+    document.getElementById('statDipanggil').textContent = String(dipanggil).padStart(3,'0');
+    document.getElementById('statSisa').textContent      = String(sisa).padStart(3,'0');
+  }
+  updateStats();
+  setInterval(updateStats, 2000);
+
+  // ── Generate antrian ─────────────────────────────────────────
+  function generateAntrian() {
+    let current = parseInt(localStorage.getItem('antrian_tertinggi') || 0);
+    current++;
+    localStorage.setItem('antrian_tertinggi', current);
+    localStorage.setItem('antrian_timestamp', Date.now());
+
+    lastNomor = current;
+    const formatted = 'A-' + String(current).padStart(3, '0');
+    const waktu = new Date();
+    const waktuStr = waktu.toLocaleString('id-ID');
+    const tanggalStr = waktu.toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+
+    // Isi struk
+    document.getElementById('txtNomorStruk').textContent  = formatted;
+    document.getElementById('txtWaktuStruk').textContent  = waktuStr;
+    document.getElementById('txtTanggalStruk').textContent = tanggalStr;
+
+    // Isi overlay
+    document.getElementById('overlayNomor').textContent = formatted;
+    document.getElementById('overlayWaktu').textContent = waktuStr;
+    document.getElementById('overlayKonfirmasi').classList.add('active');
+
+    updateStats();
+
+    // Tunda print agar overlay render dulu
+    setTimeout(() => {
+      const areaCetak = document.getElementById('areaCetak');
+      areaCetak.style.display = 'block';
+      window.print();
+      areaCetak.style.display = 'none';
+    }, 150);
+  }
+
+  function tutupOverlay() {
+    document.getElementById('overlayKonfirmasi').classList.remove('active');
+  }
+
+  function cetakUlang() {
+    const areaCetak = document.getElementById('areaCetak');
+    areaCetak.style.display = 'block';
+    window.print();
+    areaCetak.style.display = 'none';
+  }
+
+  // Klik luar overlay → tutup
+  document.getElementById('overlayKonfirmasi').addEventListener('click', function(e) {
+    if (e.target === this) tutupOverlay();
+  });
+
+  // ── Toast helper ─────────────────────────────────────────────
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2800);
+  }
+
+  // ── Pantau perubahan stats dari tab lain ─────────────────────
+  window.addEventListener('storage', function(e) {
+    if (['antrian_tertinggi','antrian_dipanggil_global'].includes(e.key)) updateStats();
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Monitor Display Antrian — Kampung Koding</title>
+  <link rel="stylesheet" href="global.css">
+  <style>
+    body {
+      background: var(--slate-900);
+      color: var(--white);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Topbar monitor ─────────────────────── */
+    .monitor-topbar {
+      background: rgba(255,255,255,.05);
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      padding: 14px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .monitor-topbar .brand {
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: -.02em;
+    }
+    .monitor-topbar .brand span { color: var(--blue-600); }
+    .monitor-clock {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 18px;
+      font-weight: 700;
+      color: rgba(255,255,255,.5);
+    }
+
+    /* ── Main display area ──────────────────── */
+    .main-display {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      gap: 0;
+    }
+
+    /* ── Panel kiri: nomor aktif ────────────── */
+    .panel-aktif {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 48px;
+      border-right: 1px solid rgba(255,255,255,.08);
+    }
+
+    .label-panggil {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,.35);
+      margin-bottom: 16px;
+    }
+
+    .nomor-display {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: clamp(96px, 14vw, 180px);
+      font-weight: 900;
+      line-height: 1;
+      letter-spacing: -.04em;
+      color: var(--white);
+      transition: transform .3s cubic-bezier(.22,.68,0,1.2);
+      text-shadow: 0 0 80px rgba(37,99,235,.4);
+    }
+    .nomor-display.animasi {
+      animation: popBig .5s cubic-bezier(.22,.68,0,1.2);
+    }
+
+    .loket-chip {
+      margin-top: 24px;
+      background: var(--blue-600);
+      color: var(--white);
+      padding: 12px 32px;
+      border-radius: 100px;
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: .04em;
+      transition: all .3s ease;
+    }
+
+    .status-suara {
+      margin-top: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: rgba(255,255,255,.3);
+      font-weight: 500;
+    }
+    .status-suara.speaking {
+      color: var(--green-500);
+    }
+    .wave-bars {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      height: 18px;
+    }
+    .wave-bars span {
+      display: block;
+      width: 3px;
+      height: 6px;
+      background: currentColor;
+      border-radius: 2px;
+      animation: none;
+    }
+    .status-suara.speaking .wave-bars span:nth-child(1) { animation: wave 1s ease-in-out infinite .0s; }
+    .status-suara.speaking .wave-bars span:nth-child(2) { animation: wave 1s ease-in-out infinite .15s; }
+    .status-suara.speaking .wave-bars span:nth-child(3) { animation: wave 1s ease-in-out infinite .3s; }
+    .status-suara.speaking .wave-bars span:nth-child(4) { animation: wave 1s ease-in-out infinite .1s; }
+    .status-suara.speaking .wave-bars span:nth-child(5) { animation: wave 1s ease-in-out infinite .2s; }
+
+    /* ── Panel kanan: riwayat ───────────────── */
+    .panel-riwayat {
+      display: flex;
+      flex-direction: column;
+      padding: 28px 24px;
+      background: rgba(255,255,255,.03);
+      overflow: hidden;
+    }
+    .panel-riwayat h3 {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,.3);
+      margin-bottom: 20px;
+    }
+
+    .riwayat-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      overflow-y: auto;
+      flex: 1;
+    }
+    .riwayat-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      border-radius: var(--radius-sm);
+      background: rgba(255,255,255,.05);
+      animation: slideInRight .3s ease;
+    }
+    .riwayat-item:first-child {
+      background: rgba(37,99,235,.2);
+      border: 1px solid rgba(37,99,235,.3);
+    }
+    @keyframes slideInRight {
+      from { opacity: 0; transform: translateX(20px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+    .riwayat-nomor {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 18px;
+      font-weight: 700;
+    }
+    .riwayat-loket {
+      font-size: 12px;
+      color: rgba(255,255,255,.4);
+      font-weight: 600;
+    }
+    .riwayat-waktu {
+      font-size: 11px;
+      color: rgba(255,255,255,.3);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* ── Stats bawah ────────────────────────── */
+    .monitor-footer {
+      background: rgba(255,255,255,.04);
+      border-top: 1px solid rgba(255,255,255,.08);
+      padding: 14px 28px;
+      display: flex;
+      gap: 32px;
+      align-items: center;
+    }
+    .footer-stat {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+    .footer-stat .val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--white);
+    }
+    .footer-stat .lbl {
+      font-size: 12px;
+      color: rgba(255,255,255,.35);
+      font-weight: 600;
+      letter-spacing: .04em;
+    }
+
+    /* ── Idle state ─────────────────────────── */
+    .idle-msg {
+      font-size: 18px;
+      color: rgba(255,255,255,.25);
+      font-weight: 600;
+      text-align: center;
+    }
+
+    /* ── Koneksi info ───────────────────────── */
+    #statusKoneksi {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .04em;
+    }
+
+    /* Glow flash on new call */
+    @keyframes glowFlash {
+      0%, 100% { box-shadow: none; }
+      30%  { box-shadow: 0 0 80px rgba(37,99,235,.5) inset; }
+    }
+    .panel-aktif.flash {
+      animation: glowFlash .8s ease;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Topbar -->
+<div class="monitor-topbar">
+  <div class="brand"><span>Kampung</span> Koding — Monitor Antrian</div>
+  <div style="display:flex; align-items:center; gap:20px;">
+    <span id="statusKoneksi" class="badge badge-green"><span class="dot-live"></span> Mendengarkan</span>
+    <span class="monitor-clock" id="monitorClock">--:--:--</span>
+  </div>
+</div>
+
+<!-- Main -->
+<div class="main-display">
+
+  <!-- Panel kiri -->
+  <div class="panel-aktif" id="panelAktif">
+    <div class="label-panggil">Nomor Yang Dipanggil</div>
+    <div class="nomor-display" id="viewNomor">—</div>
+    <div class="loket-chip" id="viewLoket">LOKET —</div>
+    <div class="status-suara" id="statusSuara">
+      <div class="wave-bars">
+        <span></span><span></span><span></span><span></span><span></span>
+      </div>
+      <span id="suaraLabel">Menunggu panggilan...</span>
+    </div>
+  </div>
+
+  <!-- Panel kanan: riwayat -->
+  <div class="panel-riwayat">
+    <h3>Riwayat Panggilan</h3>
+    <div class="riwayat-list" id="riwayatList">
+      <div class="idle-msg">Belum ada panggilan</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Footer stats -->
+<div class="monitor-footer">
+  <div class="footer-stat">
+    <span class="val mono" id="ftTotal">—</span>
+    <span class="lbl">Total Antrian</span>
+  </div>
+  <div class="footer-stat">
+    <span class="val mono" id="ftDipanggil">—</span>
+    <span class="lbl">Sudah Dipanggil</span>
+  </div>
+  <div class="footer-stat">
+    <span class="val mono" id="ftSisa">—</span>
+    <span class="lbl">Menunggu</span>
+  </div>
+</div>
+
+<script>
+  const riwayat = [];
+  const MAX_RIWAYAT = 8;
+
+  // ── Jam ──────────────────────────────────────────────────────
+  function updateClock() {
+    document.getElementById('monitorClock').textContent =
+      new Date().toLocaleTimeString('id-ID');
+  }
+  updateClock();
+  setInterval(updateClock, 1000);
+
+  // ── Stats ────────────────────────────────────────────────────
+  function updateStats() {
+    const total    = parseInt(localStorage.getItem('antrian_tertinggi') || 0);
+    const dipanggil = parseInt(localStorage.getItem('antrian_dipanggil_global') || 0);
+    const sisa     = Math.max(0, total - dipanggil);
+    document.getElementById('ftTotal').textContent     = String(total).padStart(3,'0');
+    document.getElementById('ftDipanggil').textContent = String(dipanggil).padStart(3,'0');
+    document.getElementById('ftSisa').textContent      = String(sisa).padStart(3,'0');
+  }
+  updateStats();
+  setInterval(updateStats, 3000);
+
+  // ── Riwayat ──────────────────────────────────────────────────
+  function tambahRiwayat(nomor, loket) {
+    const waktu = new Date().toLocaleTimeString('id-ID');
+    riwayat.unshift({ nomor, loket, waktu });
+    if (riwayat.length > MAX_RIWAYAT) riwayat.pop();
+    renderRiwayat();
+  }
+
+  function renderRiwayat() {
+    const container = document.getElementById('riwayatList');
+    if (riwayat.length === 0) {
+      container.innerHTML = '<div class="idle-msg">Belum ada panggilan</div>';
+      return;
+    }
+    container.innerHTML = riwayat.map((r, i) => `
+      <div class="riwayat-item">
+        <div>
+          <div class="riwayat-nomor">${r.nomor}</div>
+          <div class="riwayat-loket">Loket ${r.loket}</div>
+        </div>
+        <div class="riwayat-waktu">${r.waktu}</div>
+      </div>
+    `).join('');
+  }
+
+  // ── Terima panggilan baru ────────────────────────────────────
+  function tampilkanPanggilan(data) {
+    const nomor = data.nomor;
+    const loket = data.loket;
+
+    const elNomor = document.getElementById('viewNomor');
+    const elLoket = document.getElementById('viewLoket');
+    const panel   = document.getElementById('panelAktif');
+
+    // Update display
+    elNomor.textContent = nomor;
+    elLoket.textContent = loket !== '--' ? 'LOKET ' + loket : 'LOKET —';
+
+    // Animasi
+    elNomor.classList.remove('animasi');
+    void elNomor.offsetWidth; // force reflow
+    elNomor.classList.add('animasi');
+    panel.classList.add('flash');
+    setTimeout(() => panel.classList.remove('flash'), 800);
+
+    if (loket !== '--') {
+      tambahRiwayat(nomor, loket);
+      panggilSuara(nomor, loket);
+    }
+
+    updateStats();
+  }
+
+  // ── Storage event listener ───────────────────────────────────
+  window.addEventListener('storage', function(e) {
+    if (e.key === 'panggilan_aktif' && e.newValue) {
+      try {
+        const data = JSON.parse(e.newValue);
+        if (data) tampilkanPanggilan(data);
+      } catch(err) { console.error('Parse error:', err); }
+    }
+    if (['antrian_tertinggi','antrian_dipanggil_global'].includes(e.key)) updateStats();
+  });
+
+  // ── Text to Speech ───────────────────────────────────────────
+  function panggilSuara(nomor, loket) {
+    if (!window.speechSynthesis) return;
+
+    const angka = parseInt(nomor.replace('A-', ''));
+    const teksPanggilan = `Perhatian. Nomor antrian A ${angka}, silakan menuju ke loket ${loket}. Terima kasih.`;
+
+    const speech = new SpeechSynthesisUtterance();
+    speech.text   = teksPanggilan;
+    speech.lang   = 'id-ID';
+    speech.rate   = 0.88;
+    speech.pitch  = 1.05;
+    speech.volume = 1;
+
+    const suaraStat  = document.getElementById('statusSuara');
+    const suaraLabel = document.getElementById('suaraLabel');
+
+    speech.onstart = () => {
+      suaraStat.classList.add('speaking');
+      suaraLabel.textContent = 'Memanggil...';
+    };
+    speech.onend = () => {
+      suaraStat.classList.remove('speaking');
+      suaraLabel.textContent = 'Menunggu panggilan...';
+    };
+    speech.onerror = () => {
+      suaraStat.classList.remove('speaking');
+      suaraLabel.textContent = 'Suara tidak tersedia';
+    };
+
+    window.speechSynthesis.cancel();
+
+    // Tunggu voices load (Chrome quirk)
+    function doSpeak() {
+      const voices = window.speechSynthesis.getVoices();
+      const idVoice = voices.find(v => v.lang === 'id-ID' || v.lang.startsWith('id'));
+      if (idVoice) speech.voice = idVoice;
+      window.speechSynthesis.speak(speech);
+    }
+
+    if (window.speechSynthesis.getVoices().length > 0) {
+      doSpeak();
+    } else {
+      window.speechSynthesis.onvoiceschanged = doSpeak;
+    }
+  }
+
+  // ── Load state saat pertama buka ─────────────────────────────
+  (function loadInitial() {
+    const raw = localStorage.getItem('panggilan_aktif');
+    if (raw) {
+      try {
+        const data = JSON.parse(raw);
+        if (data && data.nomor !== 'A-000') {
+          document.getElementById('viewNomor').textContent = data.nomor;
+          document.getElementById('viewLoket').textContent = data.loket !== '--' ? 'LOKET ' + data.loket : 'LOKET —';
+        }
+      } catch(e) {}
+    }
+  })();
+</script>
+</body>
+</html>

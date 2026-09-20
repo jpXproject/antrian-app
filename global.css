@@ -1,0 +1,271 @@
+/* ============================================================
+   ANTRIAN APP — Global Stylesheet
+   Author: jpXCode | jpxcode.pages.dev
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@700&display=swap');
+
+/* ── Reset & Base ─────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --blue-600:   #2563EB;
+  --blue-700:   #1D4ED8;
+  --blue-50:    #EFF6FF;
+  --green-500:  #22C55E;
+  --green-600:  #16A34A;
+  --red-500:    #EF4444;
+  --red-600:    #DC2626;
+  --slate-900:  #0F172A;
+  --slate-800:  #1E293B;
+  --slate-600:  #475569;
+  --slate-400:  #94A3B8;
+  --slate-200:  #E2E8F0;
+  --slate-100:  #F1F5F9;
+  --slate-50:   #F8FAFC;
+  --white:      #FFFFFF;
+  --shadow-sm:  0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.06);
+  --shadow-md:  0 4px 16px rgba(0,0,0,.08), 0 2px 6px rgba(0,0,0,.05);
+  --shadow-lg:  0 20px 40px rgba(0,0,0,.10), 0 4px 12px rgba(0,0,0,.06);
+  --radius:     12px;
+  --radius-sm:  8px;
+  --radius-xs:  6px;
+}
+
+html { font-size: 16px; -webkit-font-smoothing: antialiased; }
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background: var(--slate-100);
+  color: var(--slate-900);
+  min-height: 100vh;
+}
+
+/* ── Layout ───────────────────────────────────────────────── */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 20px;
+}
+
+.card {
+  background: var(--white);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  padding: 32px;
+  margin-bottom: 20px;
+}
+
+/* ── Buttons ──────────────────────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--blue-600);
+  color: var(--white);
+  border: none;
+  padding: 14px 36px;
+  font-size: 16px;
+  font-weight: 700;
+  font-family: inherit;
+  letter-spacing: .02em;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background .15s ease, transform .1s ease, box-shadow .15s ease;
+  box-shadow: 0 2px 8px rgba(37,99,235,.25);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.btn:hover  { background: var(--blue-700); transform: translateY(-1px); box-shadow: 0 4px 14px rgba(37,99,235,.35); }
+.btn:active { transform: translateY(0); box-shadow: none; }
+
+.btn-success {
+  background: var(--green-500);
+  box-shadow: 0 2px 8px rgba(34,197,94,.25);
+}
+.btn-success:hover { background: var(--green-600); box-shadow: 0 4px 14px rgba(34,197,94,.35); }
+
+.btn-danger {
+  background: var(--red-500);
+  box-shadow: 0 2px 8px rgba(239,68,68,.25);
+}
+.btn-danger:hover { background: var(--red-600); box-shadow: 0 4px 14px rgba(239,68,68,.35); }
+
+.btn-ghost {
+  background: var(--slate-200);
+  color: var(--slate-800);
+  box-shadow: none;
+}
+.btn-ghost:hover { background: var(--slate-300); box-shadow: none; }
+
+.btn-lg { padding: 20px 52px; font-size: 20px; border-radius: var(--radius); }
+.btn-sm { padding: 10px 20px; font-size: 14px; }
+
+/* ── Badge ────────────────────────────────────────────────── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 100px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .04em;
+}
+.badge-green { background: #DCFCE7; color: #166534; }
+.badge-blue  { background: #DBEAFE; color: #1E40AF; }
+.badge-red   { background: #FEE2E2; color: #991B1B; }
+.badge-slate { background: var(--slate-200); color: var(--slate-600); }
+
+/* ── Dot pulse indicator ──────────────────────────────────── */
+.dot-live {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--green-500);
+  animation: pulse-dot 1.8s ease-in-out infinite;
+}
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: .5; transform: scale(.75); }
+}
+
+/* ── Select ───────────────────────────────────────────────── */
+select {
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  padding: 10px 14px;
+  border: 2px solid var(--slate-200);
+  border-radius: var(--radius-sm);
+  background: var(--white);
+  color: var(--slate-900);
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394A3B8' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;
+  transition: border-color .15s;
+}
+select:focus { outline: none; border-color: var(--blue-600); }
+
+/* ── Divider ──────────────────────────────────────────────── */
+.divider {
+  border: none;
+  border-top: 1px solid var(--slate-200);
+  margin: 24px 0;
+}
+
+/* ── Header bar ───────────────────────────────────────────── */
+.topbar {
+  background: var(--slate-900);
+  color: var(--white);
+  padding: 14px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.topbar-brand {
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: -.02em;
+  color: var(--white);
+}
+.topbar-brand span { color: var(--blue-600); }
+
+/* ── Mono number display ──────────────────────────────────── */
+.mono { font-family: 'JetBrains Mono', monospace; }
+
+/* ── Animations ───────────────────────────────────────────── */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-in { animation: fadeIn .3s ease forwards; }
+
+@keyframes pop {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.06); }
+  100% { transform: scale(1); }
+}
+.pop { animation: pop .35s cubic-bezier(.22,.68,0,1.2); }
+
+@keyframes popBig {
+  0%   { transform: scale(0.85); opacity: .4; }
+  60%  { transform: scale(1.04); }
+  100% { transform: scale(1);    opacity: 1; }
+}
+
+@keyframes wave {
+  0%, 100% { height: 4px; }
+  50%       { height: 16px; }
+}
+
+/* ── Toast notification ───────────────────────────────────── */
+#toast {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  background: var(--slate-900);
+  color: var(--white);
+  padding: 14px 20px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 500;
+  box-shadow: var(--shadow-lg);
+  z-index: 9999;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity .25s ease, transform .25s ease;
+  pointer-events: none;
+}
+#toast.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ── Scrollbar ────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--slate-300); border-radius: 99px; }
+
+/* ── Responsive ───────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .card { padding: 20px; }
+  .btn-lg { padding: 16px 32px; font-size: 17px; }
+}
+
+/* ============================================================
+   PRINT — Struk Thermal 58mm
+   ============================================================ */
+@media print {
+  /* Sembunyikan semua elemen layar */
+  body * { visibility: hidden !important; }
+
+  /* Hanya tampilkan area cetak */
+  #areaCetak,
+  #areaCetak * { visibility: visible !important; }
+
+  #areaCetak {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 58mm !important;
+    margin: 0 !important;
+    padding: 4mm 5mm !important;
+    font-family: 'Courier New', Courier, monospace !important;
+    font-size: 11px !important;
+    color: #000 !important;
+    background: #fff !important;
+    line-height: 1.45 !important;
+  }
+
+  .no-print { display: none !important; }
+
+  @page {
+    size: 58mm auto;
+    margin: 0;
+  }
+}
