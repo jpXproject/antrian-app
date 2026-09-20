@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Kios Antrian — Kampung Koding</title>
   <link rel="stylesheet" href="global.css">
+  <script src="config.js"></script>
   <style>
     body { display: flex; flex-direction: column; min-height: 100vh; }
 
@@ -160,7 +161,7 @@
 
 <!-- Topbar -->
 <div class="topbar no-print">
-  <span class="topbar-brand"><span>Kampung</span> Koding</span>
+  <span class="topbar-brand"><span id="brandHighlight"></span> <span id="brandRest"></span></span>
   <div class="badge badge-green"><span class="dot-live"></span> Sistem Aktif</div>
 </div>
 
@@ -214,9 +215,9 @@
 <!-- Area Cetak Struk Thermal -->
 <div id="areaCetak" style="display:none;">
   <div style="text-align:center;">
-    <p style="font-weight:700; font-size:13px; margin:0;">KAMPUNG KODING</p>
-    <p style="font-size:9px; margin:3px 0;">Jl. Raya Teknologi No. 2026</p>
-    <p style="font-size:9px; margin:0;">Telp: (021) 555-2026</p>
+    <p style="font-weight:700; font-size:13px; margin:0;" id="receiptBrand"></p>
+    <p style="font-size:9px; margin:3px 0;" id="receiptAddress"></p>
+    <p style="font-size:9px; margin:0;" id="receiptPhone"></p>
     <p style="margin:6px 0;">................................</p>
     <p style="font-size:10px; margin:4px 0; font-weight:600;">TIKET ANTRIAN</p>
     <p style="font-size:10px; margin:0;" id="txtTanggalStruk"></p>
@@ -236,6 +237,13 @@
 
 <script>
   let lastNomor = 0;
+
+  // ── Set brand from config ──────────────────────────────
+  document.getElementById('brandHighlight').textContent = APP_CONFIG.brand.name.split(' ')[0];
+  document.getElementById('brandRest').textContent = APP_CONFIG.brand.name.split(' ').slice(1).join(' ');
+  document.getElementById('receiptBrand').textContent = APP_CONFIG.brand.name.toUpperCase();
+  document.getElementById('receiptAddress').textContent = APP_CONFIG.brand.address;
+  document.getElementById('receiptPhone').textContent = 'Telp: ' + APP_CONFIG.brand.phone;
 
   // ── Jam realtime ─────────────────────────────────────────────
   function updateClock() {
@@ -267,7 +275,7 @@
     localStorage.setItem('antrian_timestamp', Date.now());
 
     lastNomor = current;
-    const formatted = 'A-' + String(current).padStart(3, '0');
+    const formatted = APP_CONFIG.queue.prefix + '-' + String(current).padStart(APP_CONFIG.queue.padStart, '0');
     const waktu = new Date();
     const waktuStr = waktu.toLocaleString('id-ID');
     const tanggalStr = waktu.toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' });

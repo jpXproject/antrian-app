@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Monitor Display Antrian — Kampung Koding</title>
   <link rel="stylesheet" href="global.css">
+  <script src="config.js"></script>
   <style>
     body {
       background: var(--slate-900);
@@ -234,7 +235,7 @@
 
 <!-- Topbar -->
 <div class="monitor-topbar">
-  <div class="brand"><span>Kampung</span> Koding — Monitor Antrian</div>
+  <div class="brand"><span id="brandName"></span> — Monitor Antrian</div>
   <div style="display:flex; align-items:center; gap:20px;">
     <span id="statusKoneksi" class="badge badge-green"><span class="dot-live"></span> Mendengarkan</span>
     <span class="monitor-clock" id="monitorClock">--:--:--</span>
@@ -285,7 +286,10 @@
 
 <script>
   const riwayat = [];
-  const MAX_RIWAYAT = 8;
+  const MAX_RIWAYAT = APP_CONFIG.display.maxRiwayat;
+
+  // ── Set brand from config ──────────────────────────────
+  document.getElementById('brandName').textContent = APP_CONFIG.brand.name;
 
   // ── Jam ──────────────────────────────────────────────────────
   function updateClock() {
@@ -373,48 +377,105 @@
 
   // ── Text to Speech ───────────────────────────────────────────
   function panggilSuara(nomor, loket) {
-    if (!window.speechSynthesis) return;
+    if (!window.speechSynthesis || !APP_CONFIG.tts.enabled) return;
 
-    const angka = parseInt(nomor.replace('A-', ''));
-    const teksPanggilan = `Perhatian. Nomor antrian A ${angka}, silakan menuju ke loket ${loket}. Terima kasih.`;
-
-    const speech = new SpeechSynthesisUtterance();
-    speech.text   = teksPanggilan;
-    speech.lang   = 'id-ID';
-    speech.rate   = 0.88;
-    speech.pitch  = 1.05;
-    speech.volume = 1;
+    const angka = parseInt(nomor.replace(APP_CONFIG.queue.prefix + '-', ''));
+    const teksPanggilan = APP_CONFIG.tts.template
+      .replace('{prefix}', APP_CONFIG.queue.prefix)
+      .replace('{nomor}', angka)
+      .replace('{loket}', loket);
 
     const suaraStat  = document.getElementById('statusSuara');
     const suaraLabel = document.getElementById('suaraLabel');
 
-    speech.onstart = () => {
-      suaraStat.classList.add('speaking');
-      suaraLabel.textContent = 'Memanggil...';
-    };
-    speech.onend = () => {
-      suaraStat.classList.remove('speaking');
-      suaraLabel.textContent = 'Menunggu panggilan...';
-    };
-    speech.onerror = () => {
-      suaraStat.classList.remove('speaking');
-      suaraLabel.textContent = 'Suara tidak tersedia';
-    };
-
-    window.speechSynthesis.cancel();
-
-    // Tunggu voices load (Chrome quirk)
-    function doSpeak() {
-      const voices = window.speechSynthesis.getVoices();
-      const idVoice = voices.find(v => v.lang === 'id-ID' || v.lang.startsWith('id'));
-      if (idVoice) speech.voice = idVoice;
-      window.speechSynthesis.speak(speech);
+    // Chime audio dulu, baru TTS
+    function playChimeThenSpeak() {
+      if (APP_CONFIG.audio.chimeEnabled) {
+        playChime(() => doSpeak());
+      } else {
+        doSpeak();
+      }
     }
 
-    if (window.speechSynthesis.getVoices().length > 0) {
-      doSpeak();
-    } else {
-      window.speechSynthesis.onvoiceschanged = doSpeak;
+    function doSpeak() {
+      const speech = new SpeechSynthesisUtterance();
+      speech.text   = teksPanggilan;
+      speech.lang   = APP_CONFIG.tts.lang;
+      speech.rate   = APP_CONFIG.tts.rate;
+      speech.pitch  = APP_CONFIG.tts.pitch;
+      speech.volume = APP_CONFIG.tts.volume;
+
+      speech.onstart = () => {
+        suaraStat.classList.add('speaking');
+        suaraLabel.textContent = 'Memanggil...';
+      };
+      speech.onend = () => {
+        suaraStat.classList.remove('speaking');
+        suaraLabel.textContent = 'Menunggu panggilan...';
+      };
+      speech.onerror = () => {
+        suaraStat.classList.remove('speaking');
+        suaraLabel.textContent = 'Suara tidak tersedia';
+      };
+
+      window.speechSynthesis.cancel();
+
+      function doSpeakInner() {
+        const voices = window.speechSynthesis.getVoices();
+        const idVoice = voices.find(v => v.lang === 'id-ID' || v.lang.startsWith('id'));
+        if (idVoice) speech.voice = idVoice;
+        window.speechSynthesis.speak(speech);
+      }
+
+      if (window.speechSynthesis.getVoices().length > 0) {
+        doSpeakInner();
+      } else {
+        window.speechSynthesis.onvoiceschanged = doSpeakInner;
+      }
+    }
+
+    playChimeThenSpeak();
+  }
+
+  // ── Audio Chime ─────────────────────────────────────────────
+  function playChime(callback) {
+    // Generate chime sound using Web Audio API (synthesized)
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const volume = APP_CONFIG.audio.chimeVolume;
+
+      // Note sequence: C5 - E5 - G5 (major chord arpeggio)
+      const notes = [523.25, 659.25, 783.99];
+      const noteDuration = 0.15;
+      const noteGap = 0.08;
+
+      notes.forEach((freq, i) => {
+        const oscillator = ctx.createOscillator();
+        const gainNode = ctx.createGain();
+
+        oscillator.connect(gainNode);
+        gainNode.connect(ctx.destination);
+
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(freq, ctx.currentTime);
+
+        const startTime = ctx.currentTime + i * (noteDuration + noteGap);
+        gainNode.gain.setValueAtTime(0, startTime);
+        gainNode.gain.linearRampToValueAtTime(volume * 0.3, startTime + 0.02);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, startTime + noteDuration);
+
+        oscillator.start(startTime);
+        oscillator.stop(startTime + noteDuration);
+      });
+
+      // Callback setelah chime selesai
+      if (callback) {
+        const totalTime = notes.length * (noteDuration + noteGap) + 0.1;
+        setTimeout(callback, totalTime * 1000);
+      }
+    } catch(e) {
+      // Fallback: langsung speak tanpa chime
+      if (callback) callback();
     }
   }
 
@@ -424,7 +485,7 @@
     if (raw) {
       try {
         const data = JSON.parse(raw);
-        if (data && data.nomor !== 'A-000') {
+        if (data && data.nomor !== APP_CONFIG.queue.prefix + '-000') {
           document.getElementById('viewNomor').textContent = data.nomor;
           document.getElementById('viewLoket').textContent = data.loket !== '--' ? 'LOKET ' + data.loket : 'LOKET —';
         }

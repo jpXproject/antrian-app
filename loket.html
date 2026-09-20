@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard Petugas Loket — Kampung Koding</title>
   <link rel="stylesheet" href="global.css">
+  <script src="config.js"></script>
   <style>
     body { background: var(--slate-100); }
 
@@ -226,7 +227,7 @@
 
 <!-- Topbar -->
 <div class="topbar">
-  <span class="topbar-brand"><span>Kampung</span> Koding — Loket Petugas</span>
+  <span class="topbar-brand"><span id="brandHighlight"></span> <span id="brandRest"></span> — Loket Petugas</span>
   <div style="display:flex; align-items:center; gap:12px;">
     <span class="badge badge-green"><span class="dot-live"></span> Aktif</span>
     <span style="font-family:'JetBrains Mono',monospace; font-size:15px; color:rgba(255,255,255,.5);" id="loketClock"></span>
@@ -248,13 +249,7 @@
     <div class="panel-kontrol">
       <div class="select-loket-wrap">
         <label>Nomor Loket Anda</label>
-        <select id="selectLoket" onchange="updateLoketLabel()">
-          <option value="1">LOKET 1</option>
-          <option value="2">LOKET 2</option>
-          <option value="3">LOKET 3</option>
-          <option value="4">LOKET 4</option>
-          <option value="5">LOKET 5</option>
-        </select>
+        <select id="selectLoket" onchange="updateLoketLabel()"></select>
       </div>
 
       <button class="btn btn-success btn-kontrol" onclick="panggilBerikutnya()">
@@ -321,6 +316,21 @@
 <script>
   let currentServed = 0;
   const sessionLog = [];
+
+  // ── Set brand from config ──────────────────────────────
+  document.getElementById('brandHighlight').textContent = APP_CONFIG.brand.name.split(' ')[0];
+  document.getElementById('brandRest').textContent = APP_CONFIG.brand.name.split(' ').slice(1).join(' ');
+
+  // ── Generate loket options from config ─────────────────
+  (function generateLoketOptions() {
+    const select = document.getElementById('selectLoket');
+    for (let i = 1; i <= APP_CONFIG.queue.maxLoket; i++) {
+      const opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = 'LOKET ' + i;
+      select.appendChild(opt);
+    }
+  })();
 
   // ── Jam ──────────────────────────────────────────────────────
   function updateClock() {
@@ -403,7 +413,7 @@
 
   // ── Eksekusi panggilan ───────────────────────────────────────
   function eksekusiPanggilan(tipe) {
-    const formatted = 'A-' + String(currentServed).padStart(3,'0');
+    const formatted = APP_CONFIG.queue.prefix + '-' + String(currentServed).padStart(APP_CONFIG.queue.padStart, '0');
     const loketDipilih = document.getElementById('selectLoket').value;
 
     // Update display loket ini
@@ -436,7 +446,7 @@
     document.getElementById('lblNomorLoket').textContent = '—';
     updateStats();
 
-    const resetPayload = { nomor: 'A-000', loket: '--', timestamp: Date.now() };
+    const resetPayload = { nomor: APP_CONFIG.queue.prefix + '-000', loket: '--', timestamp: Date.now() };
     localStorage.setItem('panggilan_aktif', JSON.stringify(resetPayload));
 
     addLog('—', '—', 'reset');
