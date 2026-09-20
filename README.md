@@ -11,10 +11,12 @@
 - **Kiosk Mode** — Pelanggan ambil nomor antrian lewat touchscreen
 - **Dashboard Loket** — Petugas panggil nomor berikutnya / ulang
 - **Monitor Publik** — Layar TV besar tampilkan nomor aktif + suara TTS
+- **Audio Chime** — Suara lonceng (C-E-G) sebelum TTS diputar
 - **Sinkronisasi Realtime** — Semua tab browser update instan via `localStorage`
 - **Cetak Struk Thermal** — Print langsung ke printer 58mm
 - **Multi-Loket** — Beberapa loket bisa aktif bersamaan tanpa konflik
 - **Reset Aman** — Modal konfirmasi, bukan `alert()` browser
+- **Configurable** — Satu file `config.js` untuk ubah brand, prefix, TTS, audio
 
 ## Tech Stack
 
@@ -23,6 +25,7 @@
 | Frontend | Pure HTML + CSS + JavaScript |
 | State | `localStorage` (zero-server) |
 | TTS | Web Speech API (`id-ID`) |
+| Audio | Web Audio API (synthesized chime) |
 | Styling | CSS Custom Properties + Google Fonts |
 | Print | `@media print` + `@page 58mm` |
 
@@ -67,10 +70,11 @@
 
 ```
 antrian-app/
-├── index.html       # Kios — pelanggan ambil nomor
-├── loket.html       # Dashboard — petugas panggil nomor
-├── display.html     # Monitor — layar publik + suara
-├── global.css       # Design system + print styles
+├── config.js         # ⚡ Client config (brand, prefix, TTS, audio)
+├── index.html        # Kios — pelanggan ambil nomor
+├── loket.html        # Dashboard — petugas panggil nomor
+├── display.html      # Monitor — layar publik + suara
+├── global.css        # Design system + print styles
 └── README.md
 ```
 
@@ -101,6 +105,46 @@ vercel --prod
 Atau klik tombol **Deploy with Vercel** di atas.
 
 > **Catatan:** Aplikasi ini zero-server. Tidak perlu SQL, tidak perlu API. Vercel cukup serve statis HTML/CSS/JS.
+
+## Configuration
+
+Edit `config.js` untuk menyesuaikan dengan client:
+
+```javascript
+const APP_CONFIG = {
+  brand: {
+    name: 'Nama Toko Client',
+    address: 'Jl. Alamat No. 123',
+    phone: '(021) 123-4567',
+  },
+  queue: {
+    prefix: 'A',        // A-001, B-001, dll
+    padStart: 3,         // digit count
+    maxLoket: 5,         // jumlah loket
+  },
+  tts: {
+    enabled: true,
+    rate: 0.88,
+    pitch: 1.05,
+    template: 'Perhatian. Nomor antrian {prefix} {nomor}, ...',
+  },
+  audio: {
+    chimeEnabled: true,  // suara lonceng sebelum TTS
+    chimeVolume: 0.7,
+  },
+};
+```
+
+### TTS Voice
+
+| Parameter | Default | Range |
+|-----------|---------|-------|
+| `lang` | `id-ID` | BCP 47 tag |
+| `rate` | `0.88` | 0.1 - 10 |
+| `pitch` | `1.05` | 0 - 2 |
+| `volume` | `1.0` | 0 - 1 |
+
+> **Note:** Kualitas TTS tergantung browser & OS. Chrome/Edge memiliki voice Indonesia terbaik. Safari mungkin terdengar berbeda.
 
 ## Browser Requirements
 
